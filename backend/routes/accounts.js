@@ -48,13 +48,16 @@ accountRouter.post('/transfer', authMiddleware, async (req, res) => {
         res.status(400).json({
             message: "Invalid Account"
         })
+        return;
     }
 
+    console.log(senderAccountDetails.balance);
     if(senderAccountDetails.balance < amt){
         await session.abortTransaction();
         res.status(400).json({
             message:"Insufficient Balance"
         })
+        return;
     }
 
     toUserNew = await Account.updateOne({userId: toUserId}, {$inc: {balance: amt}}).session(session);
