@@ -140,6 +140,7 @@ userRouter.put('/', authMiddleware, async (req, res) => {
 
 userRouter.get('/bulk', async (req, res)=>{
     nameFilter = req.query.filter;
+    console.log(nameFilter)
 
     const result = await User.find({ $or: [{firstName: {$regex: nameFilter}}, {lastName: {$regex: nameFilter}}]});
 
@@ -153,6 +154,31 @@ userRouter.get('/bulk', async (req, res)=>{
             }
         })
     });
+})
+
+userRouter.post('/me', async (req, res) => {
+    const authToken = req.headers.authorization;
+    console.log(authToken);
+
+    if(!authToken || !authToken.startsWith("Bearer ")){
+        res.status(200).json({
+            msg: "Access denied"
+        });
+    }
+
+    const token = authToken.split(" ")[1];
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        console.log(decoded);
+        userId = decoded.userId;
+    } catch (err) {
+        return res.status(200).json({
+            msg: "Access denied"
+        });
+    }
+    resp = await User.findOne({_id: userId});
+    res.status(200).send({msg: "Authenticated"});
 })
 
 module.exports = {
